@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Histórico e Progresso</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+          body {
+            font-family: Arial, sans-serif;
+        }
+        .historico-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f9f9f9;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+        .delete-btn {
+            background: none;
+            border: none;
+            color: red;
+            font-size: 20px;
+            cursor: pointer;
+        }
+        .delete-btn:hover {
+            color: darkred;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Slide de Frases Motivacionais -->
+    <div id="quoteContainer">
+        <div id="quoteText">Frase Inicial</div>
+        <div id="timer">10</div>
+    </div>
+
+    <!-- Formulários de Entrada -->
+    <div class="form-container">
+        <label for="goalInput">Meta de hoje:</label>
+        <input type="text" id="goalInput" placeholder="Digite sua meta de hoje">
+        <button id="setGoal">Definir Meta</button>
+    </div>
+
+    <div class="form-container">
+        <h3>Reflexão do dia:</h3>
+        <label for="reflectionInput">Como você está lidando com seus desafios hoje?</label>
+        <textarea id="reflectionInput" placeholder="Escreva aqui..."></textarea>
+        <button id="submitReflection">Registrar Reflexão</button>
+    </div>
+
+    <div class="form-container">
+        <h3>Desafio do Desconforto:</h3>
+        <label for="discomfortInput">Qual desconforto você enfrentou hoje e como superou?</label>
+        <textarea id="discomfortInput" placeholder="Escreva aqui..."></textarea>
+        <button id="submitDiscomfort">Registrar Desafio</button>
+    </div>
+
+    <!-- Histórico -->
+    <h3>Progresso de hoje</h3>
+    <div id="progress"></div>
+
+    <h3>Histórico</h3>
+
+    <h4>Metas Registradas</h4>
+    <div id="goalHistory"></div>
+
+    <h4>Reflexões Registradas</h4>
+    <div id="reflectionHistory"></div>
+
+    <h4>Desafios Registrados</h4>
+    <div id="discomfortHistory"></div>
+
+    <!-- Rodapé -->
+    <div id="rodapeFrases">Frases motivacionais para te inspirar!</div>
+
+    <script src="app.js"></script>
+    <script>
+        // Funções para manipular o histórico
+        document.addEventListener("DOMContentLoaded", function () {
+            carregarHistorico();
+            carregarProgresso();
+
+            // Função para carregar os históricos do localStorage
+            function carregarHistorico() {
+                const goalHistory = JSON.parse(localStorage.getItem('goalHistory')) || [];
+                const reflectionHistory = JSON.parse(localStorage.getItem('reflectionHistory')) || [];
+                const discomfortHistory = JSON.parse(localStorage.getItem('discomfortHistory')) || [];
+
+                // Carregar Metas
+                document.getElementById('goalHistory').innerHTML = `
+                    <h4>Metas Registradas</h4>
+                    ${goalHistory.map((item, index) => `
+                        <div class="historico-item">
+                            <span>${item.timestamp}: ${item.text}</span>
+                            <button class="delete-btn" data-type="goal" data-index="${index}">🗑️</button>
+                        </div>
+                    `).join('')}
+                `;
+
+                // Carregar Reflexões
+                document.getElementById('reflectionHistory').innerHTML = `
+                    <h4>Reflexões Registradas</h4>
+                    ${reflectionHistory.map((item, index) => `
+                        <div class="historico-item">
+                            <span>${item.timestamp}: ${item.text}</span>
+                            <button class="delete-btn" data-type="reflection" data-index="${index}">🗑️</button>
+                        </div>
+                    `).join('')}
+                `;
+
+                // Carregar Desafios
+                document.getElementById('discomfortHistory').innerHTML = `
+                    <h4>Desafios Registrados</h4>
+                    ${discomfortHistory.map((item, index) => `
+                        <div class="historico-item">
+                            <span>${item.timestamp}: ${item.text}</span>
+                            <button class="delete-btn" data-type="discomfort" data-index="${index}">🗑️</button>
+                        </div>
+                    `).join('')}
+                `;
+
+                // Adicionar evento de exclusão
+                document.querySelectorAll('.delete-btn').forEach(btn => {
+                    btn.addEventListener('click', function (e) {
+                        const type = e.target.getAttribute('data-type');
+                        const index = e.target.getAttribute('data-index');
+                        excluirItem(type, index);
+                    });
+                });
+            }
+
+            // Função para excluir um item específico do histórico
+            function excluirItem(type, index) {
+                let history = JSON.parse(localStorage.getItem(`${type}History`)) || [];
+                history.splice(index, 1); // Remove o item com o índice especificado
+                localStorage.setItem(`${type}History`, JSON.stringify(history)); // Atualiza o localStorage com a lista atualizada
+                carregarHistorico(); // Recarregar os históricos na tela
+            }
+        });
+
+        // Função para registrar a meta
+        document.getElementById('setGoal').addEventListener("click", () => {
+            const goalInput = document.getElementById("goalInput");
+            if (!goalInput.value.trim()) return alert("Por favor, defina uma meta.");
+            const timestamp = new Date().toLocaleString();
+            salvarHistorico("goalHistory", { text: goalInput.value, timestamp });
+            localStorage.setItem("goal", goalInput.value);
+            alert("Meta definida!");
+            goalInput.value = ''; // Limpar input
+            carregarHistorico(); // Atualizar visualização
+        });
+
+        // Função para registrar a reflexão
+        document.getElementById('submitReflection').addEventListener("click", () => {
+            const reflectionInput = document.getElementById("reflectionInput");
+            if (!reflectionInput.value.trim()) return alert("Por favor, escreva sua reflexão.");
+            const timestamp = new Date().toLocaleString();
+            salvarHistorico("reflectionHistory", { text: reflectionInput.value, timestamp });
+            localStorage.setItem("reflection", reflectionInput.value);
+            alert("Reflexão registrada!");
+            reflectionInput.value = ''; // Limpar input
+            carregarHistorico(); // Atualizar visualização
+        });
+
+        // Função para registrar o desconforto
+        document.getElementById('submitDiscomfort').addEventListener("click", () => {
+            const discomfortInput = document.getElementById("discomfortInput");
+            if (!discomfortInput.value.trim()) return alert("Por favor, escreva sobre seu desconforto.");
+            const timestamp = new Date().toLocaleString();
+            salvarHistorico("discomfortHistory", { text: discomfortInput.value, timestamp });
+            localStorage.setItem("discomfort", discomfortInput.value);
+            alert("Desafio do desconforto registrado!");
+            discomfortInput.value = ''; // Limpar input
+            carregarHistorico(); // Atualizar visualização
+        });
+
+        // Função para salvar no histórico
+        function salvarHistorico(key, newEntry) {
+            const history = JSON.parse(localStorage.getItem(key)) || [];
+            history.push(newEntry);
+            localStorage.setItem(key, JSON.stringify(history));
+        }
+
+        // Função para carregar o progresso do dia
+        function carregarProgresso() {
+            const goal = localStorage.getItem("goal") || "Ainda não definida";
+            const reflection = localStorage.getItem("reflection") || "Ainda não registrada";
+            const discomfort = localStorage.getItem("discomfort") || "Ainda não registrado";
+
+            document.getElementById("progress").innerHTML = `
+                <p><strong>Meta do dia:</strong> ${goal}</p>
+                <p><strong>Reflexão do dia:</strong> ${reflection}</p>
+                <p><strong>Desafio do desconforto:</strong> ${discomfort}</p>
+            `;
+        }
+
+        // Exibe os históricos e progresso ao carregar a página
+        window.onload = () => {
+            carregarHistorico();
+            carregarProgresso();
+        };
+    </script>
+</body>
+</html>
+
+

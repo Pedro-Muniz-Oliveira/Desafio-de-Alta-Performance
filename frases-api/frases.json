@@ -1,0 +1,24 @@
+{
+  "frases": [
+    {
+      "id": 1,
+      "texto": "O sucesso começa com a decisão de tentar."
+    },
+    {
+      "id": 2,
+      "texto": "Você é mais forte do que imagina."
+    },
+    {
+      "id": 3,
+      "texto": "A persistência é o caminho para o sucesso."
+    },
+    {
+      "id": 4,
+      "texto": "Acredite em si mesmo e tudo será possível."
+    },
+    {
+      "id": 5,
+      "texto": "Cada passo é uma conquista em direção ao seu objetivo."
+    }
+  ]
+}
